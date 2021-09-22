@@ -50,6 +50,7 @@ namespace Tally_Payment_API.Controllers
         [HttpPost, Route("GetPaymentLink")]
         [ProducesResponseType(201, Type = typeof(ResponseMessage))]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ResponseMessage GetPaymentLink([FromBody] UserRequestModel user)
         {
@@ -130,8 +131,10 @@ namespace Tally_Payment_API.Controllers
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpPost, Route("GetPaymentDetails")]
-        [ProducesResponseType(201, Type = typeof(ResponseMessage))]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(200, Type = typeof(ResponseMessage))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ResponseMessage GetPaymentDetails(string UniqueString)
         {
