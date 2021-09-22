@@ -47,11 +47,11 @@ namespace Tally_Payment_API.Controllers
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        [HttpPost, Route("GetPaymentLink")] 
+        [HttpPost, Route("GetPaymentLink")]
         [ProducesResponseType(201, Type = typeof(ResponseMessage))]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ResponseMessage GetPaymentLink([FromBody]UserRequestModel user)
+        public ResponseMessage GetPaymentLink([FromBody] UserRequestModel user)
         {
 
             if (ModelState.IsValid)
@@ -59,11 +59,11 @@ namespace Tally_Payment_API.Controllers
                 try
                 {
                     // generate random string for payment url
-                    
+
                     var randomString = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(
                         user.UserId + user.Payer + DateTime.Now + user.Amount + Guid.NewGuid().ToString().Substring(10))); ;
 
-                    
+
                     var inputObject = new UserPaymentModel
                     {
                         UserId = user.UserId,
@@ -91,7 +91,7 @@ namespace Tally_Payment_API.Controllers
                         getUserpaymentDetails.Created = DateTime.UtcNow;
 
                         var update = _userRepo.Save();
-                   
+
                         //response object
                         var response = new Data
                         {
@@ -115,12 +115,41 @@ namespace Tally_Payment_API.Controllers
                 }
                 catch (Exception e)
                 {
-                    return new ResponseMessage { Status = "Error", Message = "An Error Occured" };
+                    _logger.LogError($"{e}");
+                    return new ResponseMessage { Status = "Error", Message = "An Error Occured", Data2 = e };
                 }
             }
             return new ResponseMessage { Status = "Error", Message = "Enter all Required feilds correctly" };
 
 
+        }
+
+        /// <summary>
+        /// GetPaymentDetails
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        [HttpPost, Route("GetPaymentDetails")]
+        [ProducesResponseType(201, Type = typeof(ResponseMessage))]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ResponseMessage GetPaymentDetails(string UniqueString)
+        {
+            try
+            {
+                var output = _userRepo.GetUserPaymentByUniqueString(UniqueString);
+                if(output != null)
+                {
+                    return new ResponseMessage { Status = "Ok", Data2 = output };
+                }
+
+                return new ResponseMessage { Status = "Error", Message = "Not Found" };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"{e}");
+                return new ResponseMessage { Status = "Error", Message = "Enter all Required feilds correctly", Data2 = e };
+            }
         }
     }
 }

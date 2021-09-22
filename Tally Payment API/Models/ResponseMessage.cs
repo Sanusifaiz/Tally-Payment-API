@@ -17,6 +17,7 @@ namespace Tally_Payment_API.Models
         public string Status { get; set; }
         public string Message { get; set; }
         public Data Data { get; set; }
+        public object Data2 { get; set; }
     }
 
    
