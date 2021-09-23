@@ -21,6 +21,8 @@ namespace Tally_Payment_API.DataModel
         public DateTime Created { get; set; }
         public string Status { get; set; }
         [Required]
+        public string From { get; set; }
+        [Required]
         public string Means { get; set; }
         public DateTime Expiry { get; set; }
         [Required]

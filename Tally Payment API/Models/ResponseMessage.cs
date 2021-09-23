@@ -9,6 +9,7 @@ namespace Tally_Payment_API.Models
     {
         public string userId { get; set; }
         public double amount { get; set; }
+        public string from { get; set; }
         public DateTime created { get; set; }
         public string paymentLink { get; set; }
     }

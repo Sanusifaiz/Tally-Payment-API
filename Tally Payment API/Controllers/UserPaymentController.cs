@@ -70,6 +70,7 @@ namespace Tally_Payment_API.Controllers
                         UserId = user.UserId,
                         Amount = user.Amount,
                         Means = user.Means,
+                        From = user.From,
                         FeesBearer = user.FeesBearer,
                         Payer = user.Payer,
                         Currency = user.Currency,
@@ -98,6 +99,7 @@ namespace Tally_Payment_API.Controllers
                         {
                             userId = user.UserId,
                             amount = user.Amount,
+                            from = user.From,
                             created = getUserpaymentDetails.Created,
                             paymentLink = getUserpaymentDetails.PaymentLink
                         };
