@@ -16,7 +16,7 @@ namespace Tally_Payment_API.Models
         [Required]
         public string Means { get; set; }
         [Required]
-        public string From { get; set; }
+        public string InData { get; set; }
         [Required]
         public string FeesBearer { get; set; }
         [Required]

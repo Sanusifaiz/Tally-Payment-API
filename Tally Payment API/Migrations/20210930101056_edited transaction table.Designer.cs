@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tally_Payment_API.DataModel;
 
 namespace Tally_Payment_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20210930101056_edited transaction table")]
+    partial class editedtransactiontable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,9 +30,6 @@ namespace Tally_Payment_API.Migrations
 
                     b.Property<double>("Amount")
                         .HasColumnType("float");
-
-                    b.Property<string>("CardDetails")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -86,19 +85,10 @@ namespace Tally_Payment_API.Migrations
                     b.Property<double>("merchantfee")
                         .HasColumnType("float");
 
-                    b.Property<string>("metaname")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("metavalue")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("narration")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("orderRef")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("paymentLinkUniqueString")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("status")

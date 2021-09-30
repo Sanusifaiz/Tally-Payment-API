@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tally_Payment_API.DataModel;
 
 namespace Tally_Payment_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20210930161649_add fields to transaction tbl")]
+    partial class addfieldstotransactiontbl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,6 +41,7 @@ namespace Tally_Payment_API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PayerEmail")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PayerName")
@@ -81,6 +84,7 @@ namespace Tally_Payment_API.Migrations
                         .HasColumnType("float");
 
                     b.Property<string>("flwRef")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("merchantfee")
@@ -105,6 +109,7 @@ namespace Tally_Payment_API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("transactionRef")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

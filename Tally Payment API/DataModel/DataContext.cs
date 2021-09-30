@@ -13,5 +13,6 @@ namespace Tally_Payment_API.DataModel
 
         }
         public DbSet<UserPaymentModel> userPaymentModels { get; set; }
+        public DbSet<Transactions> Transactions { get; set; }
     }
 }

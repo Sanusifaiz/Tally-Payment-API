@@ -21,7 +21,7 @@ namespace Tally_Payment_API.DataModel
         public DateTime Created { get; set; }
         public string Status { get; set; }
         [Required]
-        public string From { get; set; }
+        public string inData { get; set; }
         [Required]
         public string Means { get; set; }
         public DateTime Expiry { get; set; }
@@ -29,7 +29,7 @@ namespace Tally_Payment_API.DataModel
         public string FeesBearer { get; set; }
         [Required]
         public string Payer { get; set; }
-        public string Details { get; set; }
+        public string outData { get; set; }
         public string PaymentLink { get; set; }
         public string RandomString { get; set; }
         public bool Sendmail { get; set; }

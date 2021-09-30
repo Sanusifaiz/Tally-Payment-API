@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tally_Payment_API.DataModel;
 
 namespace Tally_Payment_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20210928122400_Added Transaction Table")]
+    partial class AddedTransactionTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,9 +30,6 @@ namespace Tally_Payment_API.Migrations
 
                     b.Property<double>("Amount")
                         .HasColumnType("float");
-
-                    b.Property<string>("CardDetails")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
@@ -56,49 +55,13 @@ namespace Tally_Payment_API.Migrations
                     b.Property<string>("ResponseMessage")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("Updated")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("appfee")
-                        .HasColumnType("float");
 
                     b.Property<string>("authModelUsed")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("authurl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("chargeResponseCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("chargeResponseMessage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("charged_amount")
-                        .HasColumnType("float");
-
                     b.Property<string>("flwRef")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("merchantfee")
-                        .HasColumnType("float");
-
-                    b.Property<string>("metaname")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("metavalue")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("narration")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("orderRef")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("paymentLinkUniqueString")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("status")

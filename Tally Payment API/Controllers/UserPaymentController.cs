@@ -70,7 +70,7 @@ namespace Tally_Payment_API.Controllers
                         UserId = user.UserId,
                         Amount = user.Amount,
                         Means = user.Means,
-                        From = user.From,
+                        inData = user.InData,
                         FeesBearer = user.FeesBearer,
                         Payer = user.Payer,
                         Currency = user.Currency,
@@ -99,7 +99,7 @@ namespace Tally_Payment_API.Controllers
                         {
                             userId = user.UserId,
                             amount = user.Amount,
-                            from = user.From,
+                            inData = user.InData,
                             created = getUserpaymentDetails.Created,
                             paymentLink = getUserpaymentDetails.PaymentLink
                         };
@@ -132,7 +132,7 @@ namespace Tally_Payment_API.Controllers
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        [HttpPost, Route("GetPaymentDetails")]
+        [HttpGet, Route("GetPaymentDetails")]
         [ProducesResponseType(200, Type = typeof(ResponseMessage))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

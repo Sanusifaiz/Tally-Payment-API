@@ -16,6 +16,8 @@ using Tally_Payment_API.DataModel;
 using Tally_Payment_API.Repository.IRepository;
 using Tally_Payment_API.Repository;
 
+using Tally_Payment_API.Services;
+
 namespace Tally_Payment_API
 {
     public class Startup
@@ -32,7 +34,9 @@ namespace Tally_Payment_API
         {
             services.AddDbContext<DataContext>(opts => opts.UseSqlServer(Configuration["Data:ConnectionStrings:DefaultConnection"]));
             services.AddControllers();
-          services.AddScoped<IUserPaymentRepository, UserPaymentRepo>();
+            services.AddScoped<IUserPaymentRepository, UserPaymentRepo>();
+            services.AddScoped<ITransactionRepository, TransactionRepo>();
+            services.AddScoped<IPaymentDataEncryption, FlutterwaveEncrypt>();
             //services.AddSingleton<IUserPaymentRepository, UserPaymentRepo>();
             services.AddSwaggerGen(c =>
             {
