@@ -3,57 +3,23 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tally_Payment_API.DataModel;
 
 namespace Tally_Payment_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20211001215113_updateee")]
+    partial class updateee
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.10")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-            modelBuilder.Entity("Tally_Payment_API.DataModel.CardTokenTable", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("cardBIN")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("email")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("embedtoken")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("expirymonth")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("expiryyear")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("last4digits")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("type")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("CardTokenTable");
-                });
 
             modelBuilder.Entity("Tally_Payment_API.DataModel.Transactions", b =>
                 {
@@ -94,9 +60,6 @@ namespace Tally_Payment_API.Migrations
 
                     b.Property<string>("ResponseMessage")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("SaveCard")
-                        .HasColumnType("bit");
 
                     b.Property<DateTime>("Updated")
                         .HasColumnType("datetime2");
@@ -147,7 +110,6 @@ namespace Tally_Payment_API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("transactionRef")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -197,8 +159,8 @@ namespace Tally_Payment_API.Migrations
                     b.Property<bool>("Sendmail")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()

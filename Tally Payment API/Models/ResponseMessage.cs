@@ -40,7 +40,7 @@ namespace Tally_Payment_API.Models
 
     public class VerifyPaymentResponseMessage : ValidatePaymentREsponseMessage 
     {
-
+        public string CardSaveStatus { get; set; }
     }
 
     public class InitiatePaymentResponseForNigerianMasterAndVerveCard
@@ -70,6 +70,8 @@ namespace Tally_Payment_API.Models
         public string chargecode { get; set; }
         public double chargedamount { get; set; }
         public string vbvmessage { get; set; }
+        public string custphone { get; set; }
+        public string custemail { get; set; }
         public CardObj card { get; set; }
 
         public List<MetaObj> meta { get; set; }
@@ -92,6 +94,14 @@ namespace Tally_Payment_API.Models
         public string issuing_country { get; set; }
         public string card_hash { get; set; }
         public string type { get; set; }
+        public List<cardToken> card_tokens { get; set; }
+    }
+
+    public class cardToken
+    {
+        public string embedtoken { get; set; }
+        public string shortcode { get; set; }
+        public string expiry { get; set; }
     }
 
     public class validatepaymentObj
@@ -103,6 +113,14 @@ namespace Tally_Payment_API.Models
     public class ValidateFinalResponse : InitiateFinalResponse
     {
         public chargeTokenObj chargeToken { get; set; }
+    }
+
+    public class TokenChargeResponse 
+    {
+        public string status { get; set; }
+
+        public string message { get; set; }
+        public ValidateFinalResponse data { get; set; }
     }
 
     public class chargeTokenObj

@@ -43,5 +43,7 @@ namespace Tally_Payment_API.DataModel
         public string metaname { get; set; }
         public string metavalue { get; set; }
         public string paymentLinkUniqueString { get; set; }
+        public string PaymentFrontEndUrl { get; set; }
+        public bool SaveCard { get; set; }
     }
 }

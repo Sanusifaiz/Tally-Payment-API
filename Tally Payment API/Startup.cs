@@ -37,7 +37,9 @@ namespace Tally_Payment_API
             services.AddScoped<IUserPaymentRepository, UserPaymentRepo>();
             services.AddScoped<ITransactionRepository, TransactionRepo>();
             services.AddScoped<IPaymentDataEncryption, FlutterwaveEncrypt>();
-            //services.AddSingleton<IUserPaymentRepository, UserPaymentRepo>();
+            services.AddScoped<ICardTokenRepository, CardTokenRepo>();
+
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Tally_Payment_API", Version = "v1" });

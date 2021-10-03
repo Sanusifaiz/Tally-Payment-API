@@ -27,15 +27,21 @@ namespace Tally_Payment_API.Controllers
         public readonly IPaymentDataEncryption _paymentEncryption;
         private readonly IConfiguration configuration;
 
+        public readonly ICardTokenRepository _cardTokenRepo;
+
+
+
         public TransactionController(ILogger<TransactionController> logger,
             ITransactionRepository transactionRepository, IPaymentDataEncryption paymentDataEncryption,
-            IUserPaymentRepository userPaymentRepository, IConfiguration Configuration)
+            IUserPaymentRepository userPaymentRepository, IConfiguration Configuration, ICardTokenRepository cardTokenRepository)
         {
             _logger = logger;
             _transactionRepo = transactionRepository;
             _userRepo = userPaymentRepository;
             _paymentEncryption = paymentDataEncryption;
             configuration = Configuration;
+            _cardTokenRepo = cardTokenRepository;
+            // _savecard = saveCard;
         }
 
         public enum Status
@@ -70,6 +76,7 @@ namespace Tally_Payment_API.Controllers
             {
                 if (ModelState.IsValid)
                 {
+
                     //build transaction reference
                     var tranxRef = "TALDPFK-" + Guid.NewGuid().ToString().Substring(0, 10) + DateTime.Now.Ticks;
                     card.txRef = tranxRef;
@@ -101,9 +108,13 @@ namespace Tally_Payment_API.Controllers
 
                     request.AddJsonBody(body);
 
-                    var response = client.Post(request);
+                    var response = await client.ExecutePostAsync(request);
                     if (response.StatusCode.ToString() == "OK")
                     {
+                        //update paymentlink details
+                        paymentLinkDetails.Status = (int)Status.Processing;
+                        _userRepo.Save();
+
                         var responseobj = JsonConvert.DeserializeObject<InitiatePaymentResponseForNigerianMasterAndVerveCard>(response.Content);
 
                         if (responseobj.status == "success" && responseobj.message == "AUTH_SUGGESTION")
@@ -112,9 +123,14 @@ namespace Tally_Payment_API.Controllers
                             {
                                 return new ResponseMessage { Status = "Ok", Message = "Please Enter your Card Pin", Data2 = responseobj.data.suggested_auth };
                             }
-                            else if (responseobj.data.suggested_auth == "NOAUTH_INTERNATIONAL" || responseobj.data.suggested_auth == "AVS_VBVSECURECODE")
+                            else if (responseobj.data.suggested_auth == "NOAUTH_INTERNATIONAL")
                             {
                                 return new ResponseMessage { Status = "Ok", Message = "Please Enter your billing details", Data2 = responseobj.data.suggested_auth };
+                            }
+                            else if (responseobj.data.suggested_auth == "AVS_VBVSECURECODE")
+                            {
+                                return new ResponseMessage { Status = "Ok", Message = "3D Secured Payment", Data2 = responseobj.data.suggested_auth };
+
                             }
                         }
                         else if (responseobj.status == "success" && responseobj.message == "V-COMP")
@@ -148,8 +164,11 @@ namespace Tally_Payment_API.Controllers
                                 PayerName = paymentLinkDetails.FeesBearer,
                                 PayerPhone = null,
                                 UserId = paymentLinkDetails.UserId,
-                                paymentLinkUniqueString = paymentLinkDetails.RandomString
+                                paymentLinkUniqueString = paymentLinkDetails.RandomString,
+                                PaymentFrontEndUrl = card.FrontEndUrl,
+                                SaveCard = card.SaveCard
                             };
+
 
 
                             if (_transactionRepo.AddTransaction(transactionObj))
@@ -243,9 +262,7 @@ namespace Tally_Payment_API.Controllers
                         };
 
                         return new ResponseMessage { Status = "OK", Message = responseobj.message, Data2 = respObj };
-
                     }
-
                     return new ResponseMessage { Status = "Error", Message = responseobj.message, Data2 = responseobj.data };
                 }
                 return new ResponseMessage { Status = "Error", Message = "Error Validating Payment" };
@@ -270,7 +287,6 @@ namespace Tally_Payment_API.Controllers
             {
                 // get transaction details
                 var transaction = _transactionRepo.GetTransaction(trxnRef);
-
                 if (transaction == null)
                 {
                     return new ResponseMessage { Status = "error", Message = "Transaction does not exist, Enter a valid Transaction refrence" };
@@ -286,11 +302,12 @@ namespace Tally_Payment_API.Controllers
                 };
 
                 request.AddJsonBody(body);
-                var response = client.Post(request);
+                var response = await client.ExecutePostAsync(request);
                 if (response.StatusCode.ToString() == "OK")
                 {
                     var responseobj = JsonConvert.DeserializeObject<VerifyPaymentFinalResponse>(response.Content);
-                    // update transaction table 
+
+
 
                     transaction.status = responseobj.data.status;
                     transaction.chargeResponseCode = responseobj.data.chargecode;
@@ -300,12 +317,61 @@ namespace Tally_Payment_API.Controllers
                     transaction.CardDetails = responseobj.data.card.brand + ":" + responseobj.data.card.cardBIN + ":"
                         + responseobj.data.card.expirymonth + ":" + responseobj.data.card.expiryyear + ":"
                         + responseobj.data.card.issuing_country + ":" + responseobj.data.card.last4digits;
-                    transaction.metaname = responseobj.data.meta[0].metaname;
-                    transaction.metavalue = responseobj.data.meta[0].metavalue;
+                    if (responseobj.data.meta.Count != 0)
+                    {
+                        transaction.metaname = responseobj.data.meta[0].metaname;
+                        transaction.metavalue = responseobj.data.meta[0].metavalue;
+                    }
+
                     transaction.Amount = responseobj.data.amount;
                     transaction.charged_amount = responseobj.data.chargedamount;
 
-                    _userRepo.Save();
+                    _transactionRepo.Save();
+
+                    //update userpayment table
+                    var paymentLinkDetails = _userRepo.GetUserPaymentByUniqueString(transaction.paymentLinkUniqueString);
+
+                    if (responseobj.data.status == "successful" && responseobj.data.amount >= paymentLinkDetails.Amount && responseobj.data.chargecode == "00")
+                    {
+                        paymentLinkDetails.Status = (int)Status.Paid;
+                        paymentLinkDetails.outData = JsonConvert.SerializeObject(responseobj);
+                        _userRepo.Save();
+                    }
+                    else
+                    {
+                        paymentLinkDetails.Status = (int)Status.Failed;
+                        paymentLinkDetails.outData = JsonConvert.SerializeObject(responseobj);
+                        _userRepo.Save();
+                    }
+
+
+
+                    string SaveCard = "Card Not Saved";
+                    //save Card Details as token
+                    if (transaction.SaveCard)
+                    {
+                        if (responseobj.data.card.card_tokens.Count != 0) ;
+                        {
+                            // saveCard = saveCardDetails.SaveCard(responseobj.data.custemail, responseobj.data.custphone, responseobj.data.card.card_tokens[0].embedtoken);
+                            var cardTokenObj = new CardTokenTable
+                            {
+                                email = responseobj.data.custemail,
+                                PhoneNumber = responseobj.data.custphone,
+                                embedtoken = responseobj.data.card.card_tokens[0].embedtoken,
+                                expirymonth = responseobj.data.card.expirymonth,
+                                expiryyear = responseobj.data.card.expiryyear,
+                                cardBIN = responseobj.data.card.cardBIN,
+                                last4digits = responseobj.data.card.last4digits,
+                                type = responseobj.data.card.type
+
+                            };
+
+                            if (_cardTokenRepo.AddCardToken(cardTokenObj))
+                            {
+                                SaveCard = "Card Saved";
+                            };
+                        }
+                    }
 
                     var respObj = new VerifyPaymentResponseMessage
                     {
@@ -314,13 +380,180 @@ namespace Tally_Payment_API.Controllers
                         TransactionRef = responseobj.data.txRef,
                         FlutterwaveRef = responseobj.data.flwRef,
                         amount = responseobj.data.amount,
-                        charged_amount = responseobj.data.charged_amount,
-                        status = responseobj.data.status
+                        charged_amount = responseobj.data.chargedamount,
+                        status = responseobj.data.status,
+                        authModelUsed = responseobj.data.authModelUsed,
+                        CardSaveStatus = SaveCard
                     };
 
                     return new ResponseMessage { Status = "OK", Message = responseobj.message, Data2 = respObj };
                 }
-                return new ResponseMessage { };
+                return new ResponseMessage { Status = "error", Message = "Error Verifying Payment" };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseMessage { Status = "error", Message = "An Error Occurred", Data2 = ex };
+
+            }
+        }
+
+
+        [HttpPost, Route("VerifyVBVSecuredayment")]
+        [ProducesResponseType(201, Type = typeof(ResponseMessage))]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ResponseMessage> VerifyVBVSecuredayment([FromBody] VbvResponseObj Response)
+        {
+            try
+            {
+                if (Response.txRef != null)
+                {
+                    var response = await VerifyCardPayment(Response.txRef);
+                    if (response.Status == "OK")
+                    {
+                        //var responseobj = JsonConvert.DeserializeObject<VerifyPaymentResponseMessage>(response.D);
+
+                        return new ResponseMessage { Status = "OK", Message = response.Message, Data2 = response.Data2 };
+                    }
+                    return new ResponseMessage { Status = "error", Message = "Error Verifying Payment" };
+
+                }
+                return new ResponseMessage { Status = "error", Message = "Error Verifying Payment" };
+
+            }
+            catch (Exception ex)
+            {
+
+                return new ResponseMessage { Status = "error", Message = "An Error Occurred", Data2 = ex };
+
+            }
+
+        }
+
+        [HttpPost, Route("ChargeWithToken")]
+        [ProducesResponseType(201, Type = typeof(ResponseMessage))]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ResponseMessage> ChargeWithToken([FromBody] TokenChargeObj Request)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    //get paymentLink details
+                    var paymentLinkDetails = _userRepo.GetUserPaymentByUniqueString(Request.UniqueString);
+
+                    if (paymentLinkDetails == null)
+                    {
+                        return new ResponseMessage { Status = "Error", Message = "Use a Valid PaymentLink" };
+
+                    }
+                    //build transaction reference
+                    var tranxRef = "TALDPFK-" + Guid.NewGuid().ToString().Substring(0, 10) + DateTime.Now.Ticks;
+                    Request.txRef = tranxRef;
+                    Request.SECKEY = configuration["Keys:FltwvSecretKey"];
+
+                    //getCard Token with email
+                    var CardToken = _cardTokenRepo.GetCardTokenById(Request.CardId).embedtoken;
+
+                    if (CardToken == null)
+                    {
+                        return new ResponseMessage { Status = "Error", Message = "Card does not exist" };
+                    }
+                    Request.token = CardToken;
+
+
+                    // add transaction to db
+                    _transactionRepo.AddTransaction(new Transactions
+                    {
+                        transactionRef = tranxRef,
+                        Amount = Request.amount,
+                        PayerEmail = Request.email,
+                        Currency = Request.currency,
+                        PayerName = paymentLinkDetails.Payer,
+                        status = "Pending"
+                    });
+
+                    var FltwvUrl = string.Format(configuration["Url:FlutterwaveBaseUrlLive"] + "/flwv3-pug/getpaidx/api/tokenized/charge");
+                    var client = new RestClient(FltwvUrl);
+                    var request = new RestRequest();
+                    var body = Request;
+
+                    request.AddJsonBody(body);
+
+                    var response = client.Post(request);
+                    if (response.StatusCode.ToString() == "OK")
+                    {
+                        var responseobj = JsonConvert.DeserializeObject<TokenChargeResponse>(response.Content);
+                        if (responseobj.status == "success")
+                        {
+                            var Transaction = _transactionRepo.GetTransaction(tranxRef);
+
+
+                            Transaction.orderRef = responseobj.data.orderRef;
+                            Transaction.flwRef = responseobj.data.flwRef;
+                            Transaction.ResponseCode = responseobj.data.vbvrespcode;
+                            Transaction.ResponseMessage = responseobj.data.vbvrespmessage;
+                            Transaction.authModelUsed = responseobj.data.authModelUsed;
+                            Transaction.PaymentType = responseobj.data.paymentType;
+                            Transaction.Amount = responseobj.data.amount;
+                            Transaction.charged_amount = responseobj.data.charged_amount;
+                            Transaction.appfee = responseobj.data.appfee;
+                            Transaction.merchantfee = responseobj.data.merchantfee;
+                            Transaction.chargeResponseCode = responseobj.data.chargeResponseCode;
+                            Transaction.chargeResponseMessage = responseobj.data.chargeResponseMessage;
+                            Transaction.narration = responseobj.data.narration;
+                            Transaction.authurl = responseobj.data.authurl;
+                            Transaction.status = responseobj.data.status;
+                            Transaction.Currency = responseobj.data.currency;
+                            Transaction.Created = responseobj.data.createdAt;
+                            Transaction.Updated = responseobj.data.updatedAt;
+                            Transaction.PayerEmail = paymentLinkDetails.Payer;
+                            Transaction.PayerName = paymentLinkDetails.FeesBearer;
+                            Transaction.PayerPhone = null;
+                            Transaction.UserId = paymentLinkDetails.UserId;
+                            Transaction.paymentLinkUniqueString = paymentLinkDetails.RandomString;
+                            _transactionRepo.Save();
+
+                            //update user payment table
+                            paymentLinkDetails.Status = (int)Status.Paid;
+                            paymentLinkDetails.outData = JsonConvert.SerializeObject(responseobj);
+                            _userRepo.Save();
+
+                            //build response object
+                            var respObj = new VerifyPaymentResponseMessage
+                            {
+                                StatusCode = responseobj.data.chargeResponseCode,
+                                ResponseMessage = responseobj.data.vbvrespmessage,
+                                TransactionRef = responseobj.data.txRef,
+                                FlutterwaveRef = responseobj.data.flwRef,
+                                amount = responseobj.data.amount,
+                                charged_amount = responseobj.data.charged_amount,
+                                status = responseobj.data.status,
+                                CardSaveStatus = ""
+                            };
+
+                            return new ResponseMessage { Status = "OK", Message = responseobj.message, Data2 = respObj };
+
+
+                        }
+
+                        paymentLinkDetails.Status = (int)Status.Failed;
+                        paymentLinkDetails.outData = JsonConvert.SerializeObject(responseobj);
+                        _userRepo.Save();
+
+
+                        return new ResponseMessage { Status = "OK", Message = responseobj.message, Data2 = responseobj.data };
+
+
+
+                    }
+                    return new ResponseMessage { Status = "Error", Message = "Error Occured while charging with token" };
+                }
+
+                return new ResponseMessage { Status = "Error", Data2 = ModelState };
             }
             catch (Exception ex)
             {

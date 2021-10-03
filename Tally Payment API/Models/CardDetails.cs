@@ -13,10 +13,13 @@ namespace Tally_Payment_API.Models
         [Required]
         public string cardno { get; set; }
         [Required]
+        [StringLength(3)]
         public string cvv { get; set; }
         [Required]
+        [StringLength(2)]
         public string expirymonth { get; set; }
         [Required]
+        [StringLength(2)]
         public string expiryyear { get; set; }
         
         public string currency { get; set; }
@@ -30,7 +33,6 @@ namespace Tally_Payment_API.Models
         public string firstname { get; set; }
         public string lastname { get; set; }
         public string IP { get; set; }
-        [Required]
         public string txRef { get; set; }
         public List<Meta> meta { get; set; }
         public string redirect_url { get; set; }
@@ -41,7 +43,8 @@ namespace Tally_Payment_API.Models
         public string billingaddress { get; set; }
         public string billingstate { get; set; }
         public string billingcountry { get; set; }
-     
+        public string FrontEndUrl { get; set; }
+        public bool SaveCard { get; set; }
 
 
     }

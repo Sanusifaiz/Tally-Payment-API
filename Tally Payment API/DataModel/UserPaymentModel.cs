@@ -19,7 +19,7 @@ namespace Tally_Payment_API.DataModel
         public string Currency { get; set; }
 
         public DateTime Created { get; set; }
-        public string Status { get; set; }
+        public int Status { get; set; }
         [Required]
         public string inData { get; set; }
         [Required]

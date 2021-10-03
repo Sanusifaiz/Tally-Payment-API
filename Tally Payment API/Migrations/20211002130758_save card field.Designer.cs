@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tally_Payment_API.DataModel;
 
 namespace Tally_Payment_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20211002130758_save card field")]
+    partial class savecardfield
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,25 +31,10 @@ namespace Tally_Payment_API.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("cardBIN")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("email")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("embedtoken")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("expirymonth")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("expiryyear")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("last4digits")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("type")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
